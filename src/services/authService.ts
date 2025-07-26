@@ -1,9 +1,10 @@
 import { Magic } from 'magic-sdk';
+import type { MagicUserMetadata } from '../types/magic';
 
 const magic = new Magic(import.meta.env.VITE_MAGIC_PUBLISHABLE_KEY);
 
 export const authService = {
-  async login(email: string): Promise<any> {
+  async login(email: string): Promise<MagicUserMetadata> {
     try {
       await magic.auth.loginWithMagicLink({ email });
       const userData = await magic.user.getMetadata();
@@ -23,7 +24,7 @@ export const authService = {
     }
   },
 
-  async getUser(): Promise<any> {
+  async getUser(): Promise<MagicUserMetadata | null> {
     try {
       const isLoggedIn = await magic.user.isLoggedIn();
       if (isLoggedIn) {

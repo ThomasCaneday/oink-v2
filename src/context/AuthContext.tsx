@@ -1,38 +1,33 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { Magic } from 'magic-sdk';
+import { AuthContext } from './auth';
 import type { AppUser, MagicUserMetadata } from '../types/magic';
-
-interface AuthContextType {
-  user: AppUser | null;
-  loading: boolean;
-  login: (email: string) => Promise<void>;
-  logout: () => Promise<void>;
-  magic: Magic;
-}
-
-const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const magic = new Magic(import.meta.env.VITE_MAGIC_PUBLISHABLE_KEY);
 
-  useEffect(() => {
-    checkUser();
-  }, []);
-
-  const checkUser = async () => {
+  const checkUser = useCallback(async () => {
     try {
       const isLoggedIn = await magic.user.isLoggedIn();
-      const metadata = isLoggedIn ? await magic.user.getMetadata() : null;
-      setUser(isLoggedIn ? { isLoggedIn, metadata: metadata as MagicUserMetadata } : null);
+      if (isLoggedIn) {
+        const metadata = await magic.user.getMetadata() as MagicUserMetadata;
+        setUser({ isLoggedIn: true, metadata });
+      } else {
+        setUser(null);
+      }
     } catch (error) {
       console.error('Error checking user:', error);
       setUser(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [magic.user]);
+
+  useEffect(() => {
+    checkUser();
+  }, [checkUser]);
 
   const login = async (email: string) => {
     try {
@@ -63,12 +58,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 }

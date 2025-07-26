@@ -1,5 +1,3 @@
-import { Magic as MagicBase } from 'magic-sdk';
-
 export interface MagicUserMetadata {
   email: string;
   publicAddress: string;

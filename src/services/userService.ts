@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,6 +13,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+export interface Transaction {
+  walletAddress: string;
+  amount: number;
+  coin: string;
+  date: Date;
+}
+
 export interface User {
   walletAddress: string;
   email: string;
@@ -21,6 +28,7 @@ export interface User {
   streakCount: number;
   lastInvestmentDate: Date | null;
   quizProgress: { [key: string]: boolean };
+  transactions: Transaction[];
 }
 
 export const userService = {
@@ -35,6 +43,7 @@ export const userService = {
       streakCount: 0,
       lastInvestmentDate: null,
       quizProgress: {},
+      transactions: [],
     });
   },
 
@@ -92,6 +101,47 @@ export const userService = {
         ...userData,
         streakCount: newStreakCount,
         lastInvestmentDate: now,
+      });
+    }
+  },
+
+  async getTopUsers(count: number): Promise<User[]> {
+    const usersRef = collection(db, 'users');
+    const q = query(
+      usersRef,
+      orderBy('points', 'desc'),
+      limit(count)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as User);
+  },
+
+  async getUserRank(walletAddress: string): Promise<number> {
+    const usersRef = collection(db, 'users');
+    const q = query(
+      usersRef,
+      orderBy('points', 'desc')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const index = querySnapshot.docs.findIndex(
+      doc => doc.id === walletAddress
+    );
+    
+    return index + 1;
+  },
+
+  async addTransaction(transaction: Transaction): Promise<void> {
+    const userRef = doc(db, 'users', transaction.walletAddress);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      const userData = userSnap.data() as User;
+      await setDoc(userRef, {
+        ...userData,
+        totalInvested: userData.totalInvested + transaction.amount,
+        transactions: [...(userData.transactions || []), transaction],
       });
     }
   },

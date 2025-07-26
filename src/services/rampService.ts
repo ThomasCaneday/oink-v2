@@ -12,6 +12,7 @@ export const rampService = {
     new RampInstantSDK({
       hostApiKey,
       hostAppName: 'Oink',
+      hostLogoUrl: 'https://example.com/logo.png', // Replace with your actual logo URL
       swapAmount: swapAmount?.toString(),
       swapAsset,
       userAddress,

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Question } from '../data/lessons';
 import { userService } from '../services/userService';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { toastManager } from '../hooks/useToast';
 
 interface QuizProps {

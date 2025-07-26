@@ -19,12 +19,6 @@ declare module '@ramp-network/ramp-instant-sdk' {
     swapAmount?: string;
     swapAsset?: string;
     userAddress: string;
-    hostLogoUrl?: string;
-  }
-
-  class RampInstantSDK {
-    constructor(config: IHostConfig);
-    show(): void;
-    close(): void;
+    hostLogoUrl: string;
   }
 }

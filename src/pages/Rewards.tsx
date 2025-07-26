@@ -15,12 +15,15 @@ const Rewards = () => {
   }, []);
 
   const loadUser = async () => {
+    setLoading(true);
     try {
       // Replace with actual user wallet address from auth
       const userData = await userService.getUser('YOUR_WALLET_ADDRESS');
       setUser(userData);
     } catch (error) {
       console.error('Error loading user:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
